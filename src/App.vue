@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <npm></npm>
+    <div class="container">
+      <npm></npm>
+    </div>
   </div>
 </template>
 
