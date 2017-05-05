@@ -6,8 +6,9 @@
       <input v-model="packages" type="text" class="form-control" id="inlineFormInputGroup" placeholder="Packages">
       <button type="button" class="btn btn-primary form-control" v-on:click="getList ()">Submit</button>
     </form>
-    <div class="col-md-8">
-      <chart :chartData="downloads" :labels="labels" v-if="showChart"></chart>
+    <div class="col-md-8 Chart">
+      <h2>Chart</h2>
+      <chart :chartData="downloads" :labels="labels"></chart>
     </div>
   </div>
 </template>
@@ -22,9 +23,9 @@ export default {
   data () {
     return {
       downloads: '',
-      from: '',
-      to: '',
-      packages: '',
+      from: '2017-05-01',
+      to: '2017-05-02',
+      packages: 'react',
       showChart: false,
       labels: ''
     }
@@ -42,7 +43,23 @@ export default {
     }
   },
   mounted () {
-    // this.getList()
+    this.getList()
   }
 }
 </script>
+
+<style>
+.Chart {
+  background: #212733;
+  border-radius: 15px;
+  box-shadow: 0px 2px 15px rgba(25, 25, 25, 0.27);
+  margin:  25px 0;
+}
+
+.Chart h2 {
+  margin-top: 0;
+  padding: 15px 0;
+  color:  rgba(255, 0,0, 0.5);
+  border-bottom: 1px solid #323d54;
+}
+</style>
