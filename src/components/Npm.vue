@@ -1,49 +1,89 @@
 <template lang="">
-  <div class="col-md-8 offset-md-2">
-    <form class="form-inline">
-      <input required v-model="from" type="date" class="form-control mb-2 mr-sm-2 mb-sm-0" id="inlineFormInput" placeholder="From">
-      <input required v-model="to" type="date" class="form-control mb-2 mr-sm-2 mb-sm-0" id="inlineFormInputGroup" placeholder="To">
-      <input v-model="packages" type="text" class="form-control" id="inlineFormInputGroup" placeholder="Packages">
-      <button type="button" class="btn btn-primary form-control" v-on:click="getList ()">Submit</button>
-    </form>
-    <div class="col-md-8 Chart">
-      <h2>Chart</h2>
-      <chart :chartData="downloads" :labels="labels"></chart>
+  <div class="content">
+    <div class="container">
+      <div class="Search__container">
+        <input
+        class="Search__input"
+        @keyup.enter='requestData'
+        placeholder='npm package name'
+        type='search' name='search'
+        v-model='package'
+        >
+        <button class='Search__button' @click='requestData'>Find</button>
+      </div>
+      <div class="error-message" v-if="showError">
+
+      </div>
+      <hr>
+      <h1 class="title" v-if="loaded"></h1>
+      <div class="Chart__container" v-if="loaded">
+        <div class="Chart__title">
+          Downloads per Day <span></span>
+          <hr>
+        </div>
+        <div class="Chart__content">
+          <line-chart v-if="loaded" :chart-data="downloads" :chart-labels="labels"></line-chart>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 <script lang="">
-import Chart from './Chart'
+import LineChart from '@/components/LineChart'
 
 export default {
   components: {
-    Chart
+    LineChart
   },
-  name: 'npm',
+  props: {},
   data () {
     return {
-      downloads: '',
-      from: '2017-05-01',
-      to: '2017-05-02',
-      packages: 'react',
-      showChart: false,
-      labels: ''
-    }
-  },
-  methods: {
-    getList () {
-      this.$http.get(`https://api.npmjs.org/downloads/range/${this.from}:${this.to}/${this.packages}`)
-      .then((response) => {
-        this.downloads = response.data
-        this.showChart = true
-        this.labels = this.packages
-      }).catch((error) => {
-        console.log(error.status)
-      })
+      downloads: [],
+      labels: [],
+      // from: '2017-05-01',
+      // to: '2017-05-02',
+      package: null,
+      packageName: '',
+      period: 'last-month',
+      loaded: false,
+      showError: false,
+      errorMessage: 'Please enter package name'
     }
   },
   mounted () {
-    this.getList()
+    if (this.$route.params.package) {
+      this.package = this.$route.params.package
+      this.requestData()
+    }
+  },
+  methods: {
+    resetState () {
+      this.loaded = false
+      this.showError = false
+    },
+    requestData () {
+      if (this.package === null || this.package === '' || this.package === 'undefined') {
+        this.showError = true
+        return
+      }
+      this.resetState()
+      this.$http.get(`https://api.npmjs.org/downloads/range/${this.period}/${this.package}`)
+      .then((response) => {
+        console.log(response.data)
+        this.downloads = response.data.downloads.map(download => download.downloads)
+        this.labels = response.data.downloads.map(download => download.day)
+        this.packageName = response.data.package
+        this.setURL()
+        this.loaded = true
+      })
+      .catch((err) => {
+        this.errorMessage = err.response.data.error
+        this.showError = true
+      })
+    },
+    setURL () {
+      history.pushState({info: `npm-stats ${this.package}`}, this.package, `/#/${this.package}`)
+    }
   }
 }
 </script>
